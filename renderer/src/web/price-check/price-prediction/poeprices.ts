@@ -37,7 +37,7 @@ export async function requestPoeprices (item: ParsedItem): Promise<RareItemPrice
 
   let data = cache.get<PoepricesApiResponse>(query)
   if (!data) {
-    const response = await Host.proxy(`www.poeprices.info/api?${query}`)
+    const response = await window.fetch(`https://proxy.corsfix.com/?https://www.poeprices.info/api?${query}`)
     try {
       data = await response.json() as PoepricesApiResponse
     } catch (e) {

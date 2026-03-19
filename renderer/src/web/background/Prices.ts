@@ -51,7 +51,7 @@ export const usePoeninja = createGlobalState(() => {
     try {
       isLoading.value = true
       downloadController = new AbortController()
-      const response = await Host.proxy(`poe.ninja/poe1/api/economy/current/dense/overviews?league=${league.id}&language=en`, {
+      const response = await window.fetch(`https://proxy.corsfix.com/?https://poe.ninja/poe1/api/economy/current/dense/overviews?league=${league.id}&language=en`, {
         signal: downloadController.signal
       })
       const jsonBlob = await response.text()

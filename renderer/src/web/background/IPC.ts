@@ -16,14 +16,14 @@ class HostTransport {
     this.onEvent('MAIN->CLIENT::updater-state', (info) => {
       this.updateInfo.value = info
     })
-    await new Promise((resolve) => {
+/*    await new Promise((resolve) => {
       this.socket = new Sockette(`ws://${window.location.host}/events`, {
         onmessage: (e) => {
           this.selfDispatch(JSON.parse(e.data))
         },
         onopen: resolve
       })
-    })
+    }) */
   }
 
   selfDispatch (event: IpcEvent) {
@@ -33,7 +33,7 @@ class HostTransport {
   }
 
   sendEvent (event: IpcEvent) {
-    this.socket.send(JSON.stringify(event))
+  //  this.socket.send(JSON.stringify(event))
   }
 
   onEvent<Name extends IpcEvent['name']> (
@@ -71,7 +71,7 @@ class HostTransport {
   }
 
   proxy: typeof window['fetch'] = async (url, init) => {
-    return await window.fetch(`/proxy/${url as string}`, init)
+    return await window.fetch(`https://go.x2u.in/proxy?email=diduse@denipl.com&apiKey=804e206a&url=https://${url as string}`, init)
   }
 
   get isElectron () {

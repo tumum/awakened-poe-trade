@@ -114,7 +114,7 @@ export default defineComponent({
         showSeller: false,
         searchStatRange: 10,
         showCursor: true,
-        requestPricePrediction: false,
+        requestPricePrediction: true,
         rememberCurrency: false
       }
     }
