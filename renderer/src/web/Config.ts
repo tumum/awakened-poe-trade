@@ -163,7 +163,7 @@ export const defaultConfig = (): Config => ({
   language: 'en',
   realm: 'pc-ggg',
   useIntlSite: false,
-  fontSize: 16,
+  fontSize: 12,
   widgets: widgetRegistry.widgets.reduce<widget.Widget[]>((widgets, { widget }) => {
     const res: widget.Widget[] = []
     if (widget.instances === 'single') {

@@ -52,7 +52,10 @@ export const usePoeninja = createGlobalState(() => {
       isLoading.value = true
       downloadController = new AbortController()
       const response = await window.fetch(`https://proxy.corsfix.com/?https://poe.ninja/poe1/api/economy/current/dense/overviews?league=${league.id}&language=en`, {
-        signal: downloadController.signal
+        signal: downloadController.signal,
+        headers: {
+          'x-corsfix-key': 'cfx_e4b9f0d4cdab5a2f6d3e1940c99c351c'
+        }
       })
       const jsonBlob = await response.text()
 

@@ -29,7 +29,7 @@
         <ui-toggle v-model="config.alwaysShow">{{ t(':always_show') }}</ui-toggle>
       </div>
       <div v-else class="px-1 pb-1">
-        <textarea ref="textarea" class="px-2 py-1.5 bg-gray-700 rounded resize-none block"
+        <textarea class="px-2 py-1.5 bg-gray-700 rounded resize-none block"
           rows="1" spellcheck="false"
           :placeholder="t(':price_check')" @input="handleItemPaste"></textarea>
       </div>
@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, computed, inject, ref, onMounted, onUnmounted } from 'vue'
+import { defineComponent, PropType, computed, inject } from 'vue'
 import UiToggle from '@/web/ui/UiToggle.vue'
 import UiPopover from '@/web/ui/Popover.vue'
 import { Widget as IWidget, WidgetManager, WidgetMenu, WidgetSpec } from './interfaces'
@@ -69,6 +69,25 @@ export default defineComponent({
     }
   } satisfies WidgetSpec,
   components: { Widget, UiToggle, UiPopover },
+
+  mounted() {
+    document.addEventListener('paste', (event: ClipboardEvent ) => {
+      const clipboard = event.clipboardData?.getData('text') || '';
+
+        Host.selfDispatch({
+          name: 'MAIN->CLIENT::item-text',
+          payload: {
+            clipboard: clipboard,
+            position: {
+             x: window.screenX + 100, y: window.screenY + 100
+            },
+            focusOverlay: true,
+            target: 'price-check'
+          }
+        })
+    });
+  },
+
   props: {
     config: {
       type: Object as PropType<WidgetMenu>,
@@ -77,61 +96,29 @@ export default defineComponent({
   },
   setup (props) {
     const wm = inject<WidgetManager>('wm')!
-    const textarea = ref<HTMLTextAreaElement>()
+
+    const widgets = computed(() => {
+      return wm.widgets.value.filter(widget =>
+        !widget.wmFlags.includes('menu::skip') &&
+        (props.config.alwaysShow || (widget.wmWants === 'hide'))
+      ).map((widget) => {
+        const regexMatch = widget.wmTitle
+          .match(/^(?:\{icon=(?<icon>[^}]+)\}\s*)?(?<title>.*)$/)
+        return {
+          wmId: widget.wmId,
+          wmWants: widget.wmWants,
+          title: regexMatch?.groups!.title ||
+            ((!regexMatch?.groups!.icon) ? `#${widget.wmId}` : undefined),
+          icon: regexMatch?.groups!.icon
+        }
+      })
+    })
 
     const { t } = useI18nNs('widget_menu')
 
-    const pasteItem = (text: string, position: { x: number; y: number }) => {
-      Host.selfDispatch({
-        name: 'MAIN->CLIENT::item-text',
-        payload: {
-          clipboard: text,
-          position,
-          focusOverlay: true,
-          target: 'price-check'
-        }
-      })
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.key === 'v') {
-        event.preventDefault()
-        navigator.clipboard.readText().then(text => {
-          pasteItem(text, {
-            x: window.screenX + window.innerWidth / 2,
-            y: window.screenY + window.innerHeight / 2
-          })
-        })
-      }
-    }
-
-    onMounted(() => {
-      window.addEventListener('keydown', handleKeyDown)
-    })
-
-    onUnmounted(() => {
-      window.removeEventListener('keydown', handleKeyDown)
-    })
-
     return {
       t,
-      textarea,
-      widgets: computed(() => {
-        return wm.widgets.value.filter(widget =>
-          !widget.wmFlags.includes('menu::skip') &&
-          (props.config.alwaysShow || (widget.wmWants === 'hide'))
-        ).map((widget) => {
-          const regexMatch = widget.wmTitle
-            .match(/^(?:\{icon=(?<icon>[^}]+)\}\s*)?(?<title>.*)$/)
-          return {
-            wmId: widget.wmId,
-            wmWants: widget.wmWants,
-            title: regexMatch?.groups!.title ||
-              ((!regexMatch?.groups!.icon) ? `#${widget.wmId}` : undefined),
-            icon: regexMatch?.groups!.icon
-          }
-        })
-      }),
+      widgets,
       instantiableWidgets: computed(() => {
         return registry.widgets
           .filter(({ widget }) => widget.instances === 'multi')
@@ -148,11 +135,19 @@ export default defineComponent({
         }
       },
       handleItemPaste (e: Event) {
-        const target = e.target as HTMLTextAreaElement
+        const target = e.target as HTMLInputElement
         const inputRect = target.getBoundingClientRect()
-        pasteItem(target.value, {
-          x: window.screenX + inputRect.x + inputRect.width / 2,
-          y: window.screenY + inputRect.y + inputRect.height / 2
+        Host.selfDispatch({
+          name: 'MAIN->CLIENT::item-text',
+          payload: {
+            clipboard: target.value,
+            position: {
+              x: window.screenX + inputRect.x + inputRect.width / 2,
+              y: window.screenY + inputRect.y + inputRect.height / 2
+            },
+            focusOverlay: true,
+            target: 'price-check'
+          }
         })
         target.value = ''
       }

@@ -37,7 +37,14 @@ export async function requestPoeprices (item: ParsedItem): Promise<RareItemPrice
 
   let data = cache.get<PoepricesApiResponse>(query)
   if (!data) {
-    const response = await window.fetch(`https://proxy.corsfix.com/?https://www.poeprices.info/api?${query}`)
+    const response = await window.fetch(
+      `https://proxy.corsfix.com/?https://www.poeprices.info/api?${query}`,
+      {
+        headers: {
+          'x-corsfix-key': 'cfx_e4b9f0d4cdab5a2f6d3e1940c99c351c'
+        }
+      }
+    )
     try {
       data = await response.json() as PoepricesApiResponse
     } catch (e) {
